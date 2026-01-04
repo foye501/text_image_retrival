@@ -1,6 +1,6 @@
 import os
 from io import BytesIO
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -18,8 +18,8 @@ class SearchRequest(BaseModel):
 class SearchResult(BaseModel):
     streamer_id: str
     image_uri: str
-    distance: float | None = None
-    id: str | None = None
+    distance: Optional[float] = None
+    id: Optional[str] = None
 
 
 app = FastAPI(title="CLIP Retrieval API")

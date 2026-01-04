@@ -1,5 +1,5 @@
 import os
-from typing import Iterable, List, Union
+from typing import Iterable, List, Optional, Union
 
 import torch
 from PIL import Image
@@ -10,7 +10,7 @@ class ClipEmbedder:
     def __init__(
         self,
         model_name: str = "openai/clip-vit-base-patch32",
-        device: str | None = None,
+        device: Optional[str] = None,
     ) -> None:
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
