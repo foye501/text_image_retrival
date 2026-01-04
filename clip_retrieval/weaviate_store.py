@@ -14,7 +14,6 @@ class WeaviateStore:
         url: str,
         api_key: Optional[str] = None,
         class_name: str = "Streamer",
-        timeout_config: Tuple[int, int] = (5, 30),
         grpc_port: Optional[int] = None,
     ) -> None:
         parsed = urlparse(url)
@@ -37,7 +36,6 @@ class WeaviateStore:
             grpc_port=grpc_port,
             grpc_secure=http_secure,
             auth_credentials=auth,
-            timeout_config=timeout_config,
         )
         self.class_name = class_name
 
