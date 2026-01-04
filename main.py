@@ -5,10 +5,12 @@ from clip_retrieval.weaviate_store import WeaviateStore
 
 
 def main() -> None:
-    weaviate_url = os.environ.get("WEAVIATE_URL", "http://localhost:8080")
+    weaviate_url = os.environ.get("WEAVIATE_URL", "http://10.68.200.131:18080")
     weaviate_api_key = os.environ.get("WEAVIATE_API_KEY")
+    weaviate_grpc_port = os.environ.get("WEAVIATE_GRPC_PORT")
+    grpc_port = int(weaviate_grpc_port) if weaviate_grpc_port else None
 
-    store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key)
+    store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key, grpc_port=grpc_port)
     store.ensure_schema()
 
     clip = ClipEmbedder()

@@ -13,8 +13,9 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
-export WEAVIATE_URL="http://localhost:8080"
+export WEAVIATE_URL="http://10.68.200.131:18080"
 export WEAVIATE_API_KEY="your-api-key-if-needed"
+export WEAVIATE_GRPC_PORT="50051"
 export IMAGE_DIR="data/streamer_images"
 python main.py
 ```
@@ -22,8 +23,9 @@ python main.py
 ## Run API
 
 ```bash
-export WEAVIATE_URL="http://localhost:8080"
+export WEAVIATE_URL="http://10.68.200.131:18080"
 export WEAVIATE_API_KEY="your-api-key-if-needed"
+export WEAVIATE_GRPC_PORT="50051"
 export IMAGE_DIR="data/streamer_images"
 uvicorn api:app --reload
 ```
@@ -46,3 +48,4 @@ curl -X POST "http://127.0.0.1:8000/search" \
 
 - The Weaviate class is created with `vectorizer: "none"` since embeddings come from CLIP.
 - Replace the example `streamers` list in `main.py` with your ingestion pipeline.
+- Uses Weaviate Python client v4 APIs (collections).

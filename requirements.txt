@@ -2,7 +2,7 @@ torch
 torchvision
 transformers
 pillow
-weaviate-client>=3.26.0
+weaviate-client>=4.0.0
 fastapi
 uvicorn
 python-multipart
