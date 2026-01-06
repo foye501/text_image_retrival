@@ -7,3 +7,8 @@ with open("./4-9.png", "rb") as f:
     resp = requests.post(url, files=files, data=data)
 
 print(resp.status_code, resp.json())
+
+
+
+
+
