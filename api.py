@@ -1,6 +1,8 @@
+import json
 import os
 from io import BytesIO
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
+from urllib.request import Request, urlopen
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -33,6 +35,12 @@ image_dir = os.environ.get("IMAGE_DIR", "data/streamer_images")
 store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key, grpc_port=grpc_port)
 store.ensure_schema()
 embedder = ClipEmbedder()
+
+
+@app.on_event("shutdown")
+def shutdown() -> None:
+    # Ensure the Weaviate client connection is closed cleanly.
+    store.client.close()
 
 
 @app.get("/health")
@@ -81,3 +89,35 @@ def search(request: SearchRequest) -> List[SearchResult]:
         )
         for item in results
     ]
+
+
+@app.get("/debug/streamers")
+def debug_streamers(
+    streamer_id: Optional[str] = None,
+    limit: int = 1,
+    include_vector: bool = True,
+) -> Dict[str, Any]:
+    fields = "streamer_id image_uri _additional { id"
+    if include_vector:
+        fields += " vector"
+    fields += " }"
+
+    where = ""
+    if streamer_id:
+        safe_id = streamer_id.replace('"', '\\"')
+        where = f'where:{{path:["streamer_id"], operator:Equal, valueText:"{safe_id}"}}'
+
+    query = f"{{ Get {{ Streamer(limit:{limit} {where}) {{ {fields} }} }} }}"
+    payload = json.dumps({"query": query}).encode("utf-8")
+
+    headers = {"Content-Type": "application/json"}
+    if weaviate_api_key:
+        headers["Authorization"] = f"Bearer {weaviate_api_key}"
+
+    request = Request(f"{weaviate_url}/v1/graphql", data=payload, headers=headers)
+    try:
+        with urlopen(request, timeout=10) as response:
+            data = response.read().decode("utf-8")
+            return json.loads(data)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc

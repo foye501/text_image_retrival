@@ -64,7 +64,7 @@ class WeaviateStore:
             near_vector=vector,
             limit=limit,
             return_properties=["streamer_id", "image_uri"],
-            return_metadata=MetadataQuery(distance=True, uuid=True),
+            return_metadata=MetadataQuery(distance=True),
         )
         items = []
         for obj in results.objects:
@@ -74,7 +74,7 @@ class WeaviateStore:
                     "image_uri": obj.properties.get("image_uri", ""),
                     "_additional": {
                         "distance": obj.metadata.distance,
-                        "id": str(obj.metadata.uuid),
+                        "id": str(obj.uuid),
                     },
                 }
             )
