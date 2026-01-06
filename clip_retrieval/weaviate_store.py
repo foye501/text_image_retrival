@@ -54,11 +54,13 @@ class WeaviateStore:
         )
 
     def add_streamer(self, streamer_id: str, image_uri: str, vector: List[float]) -> str:
+        self.ensure_schema()
         data = {"streamer_id": streamer_id, "image_uri": image_uri}
         collection = self.client.collections.get(self.class_name)
         return str(collection.data.insert(properties=data, vector=vector))
 
     def query_by_vector(self, vector: List[float], limit: int = 5) -> List[Dict[str, Any]]:
+        self.ensure_schema()
         collection = self.client.collections.get(self.class_name)
         results = collection.query.near_vector(
             near_vector=vector,
