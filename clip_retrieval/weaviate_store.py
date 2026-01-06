@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 import weaviate
-from weaviate.classes.config import Configure, DataType, Property, VectorDistances
+from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.query import MetadataQuery
 
 
@@ -25,7 +25,7 @@ class WeaviateStore:
             http_port = 443 if http_secure else 8080
 
         if grpc_port is None:
-            grpc_port = 50051
+            grpc_port = 50052
 
         auth = weaviate.auth.AuthApiKey(api_key) if api_key else None
         self.client = weaviate.connect_to_custom(
@@ -47,9 +47,6 @@ class WeaviateStore:
             name=self.class_name,
             description="Streamer image embeddings (CLIP, no vectorizer).",
             vectorizer_config=Configure.Vectorizer.none(),
-            vector_index_config=Configure.VectorIndex.hnsw(
-                distance_metric=VectorDistances.COSINE
-            ),
             properties=[
                 Property(name="streamer_id", data_type=DataType.TEXT),
                 Property(name="image_uri", data_type=DataType.TEXT),
@@ -79,11 +76,6 @@ class WeaviateStore:
                     "image_uri": obj.properties.get("image_uri", ""),
                     "_additional": {
                         "distance": obj.metadata.distance,
-                        "score": (
-                            None
-                            if obj.metadata.distance is None
-                            else 1.0 - obj.metadata.distance
-                        ),
                         "id": str(obj.uuid),
                     },
                 }

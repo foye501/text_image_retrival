@@ -9,7 +9,7 @@ from transformers import CLIPModel, CLIPProcessor
 class ClipEmbedder:
     def __init__(
         self,
-        model_name: str = "openai/clip-vit-base-patch32",
+        model_name: str = "openai/clip-vit-large-patch14",
         device: Optional[str] = None,
     ) -> None:
         if device is None:

@@ -9,11 +9,12 @@ def main() -> None:
     weaviate_api_key = os.environ.get("WEAVIATE_API_KEY")
     weaviate_grpc_port = os.environ.get("WEAVIATE_GRPC_PORT")
     grpc_port = int(weaviate_grpc_port) if weaviate_grpc_port else None
+    clip_model = os.environ.get("CLIP_MODEL", "openai/clip-vit-large-patch14")
 
     store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key, grpc_port=grpc_port)
     store.ensure_schema()
 
-    clip = ClipEmbedder()
+    clip = ClipEmbedder(model_name=clip_model)
 
     # Example: add streamer images (replace with your own data ingestion).
     streamers = [

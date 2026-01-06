@@ -31,11 +31,12 @@ weaviate_url = os.environ.get("WEAVIATE_URL", "http://10.68.200.131:18080")
 weaviate_api_key = os.environ.get("WEAVIATE_API_KEY")
 weaviate_grpc_port = os.environ.get("WEAVIATE_GRPC_PORT")
 grpc_port = int(weaviate_grpc_port) if weaviate_grpc_port else None
+clip_model = os.environ.get("CLIP_MODEL", "openai/clip-vit-large-patch14")
 image_dir = os.environ.get("IMAGE_DIR", "data/streamer_images")
 
 store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key, grpc_port=grpc_port)
 store.ensure_schema()
-embedder = ClipEmbedder()
+embedder = ClipEmbedder(model_name=clip_model)
 
 
 @app.on_event("shutdown")
