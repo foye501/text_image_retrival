@@ -21,6 +21,7 @@ class SearchResult(BaseModel):
     streamer_id: str
     image_uri: str
     distance: Optional[float] = None
+    score: Optional[float] = None
     id: Optional[str] = None
 
 
@@ -85,6 +86,7 @@ def search(request: SearchRequest) -> List[SearchResult]:
             streamer_id=item.get("streamer_id", ""),
             image_uri=item.get("image_uri", ""),
             distance=item.get("_additional", {}).get("distance"),
+            score=item.get("_additional", {}).get("score"),
             id=item.get("_additional", {}).get("id"),
         )
         for item in results
