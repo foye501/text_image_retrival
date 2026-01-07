@@ -67,15 +67,15 @@ class WeaviateStore:
     ) -> List[Dict[str, Any]]:
         self.ensure_schema()
         collection = self.client.collections.get(self.class_name)
-        where = None
+        filters = None
         if streamer_id:
-            where = Filter.by_property("streamer_id").equal(streamer_id)
+            filters = Filter.by_property("streamer_id").equal(streamer_id)
         results = collection.query.near_vector(
             near_vector=vector,
             limit=limit,
             return_properties=["streamer_id", "image_uri"],
             return_metadata=MetadataQuery(distance=True),
-            where=where,
+            filters=filters,
         )
         items = []
         for obj in results.objects:
