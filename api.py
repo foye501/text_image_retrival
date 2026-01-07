@@ -122,7 +122,15 @@ def search(request: SearchRequest) -> List[SearchResult]:
             streamer_id=item.get("streamer_id", ""),
             image_uri=item.get("image_uri", ""),
             distance=item.get("_additional", {}).get("distance"),
-            score=item.get("_additional", {}).get("score"),
+            score=(
+                item.get("_additional", {}).get("score")
+                if item.get("_additional", {}).get("score") is not None
+                else (
+                    None
+                    if item.get("_additional", {}).get("distance") is None
+                    else 1.0 - item.get("_additional", {}).get("distance")
+                )
+            ),
             id=item.get("_additional", {}).get("id"),
         )
         for item in results
