@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property
-from weaviate.classes.query import MetadataQuery
+from weaviate.classes.query import Filter, MetadataQuery
 
 
 class WeaviateStore:
@@ -59,14 +59,23 @@ class WeaviateStore:
         collection = self.client.collections.get(self.class_name)
         return str(collection.data.insert(properties=data, vector=vector))
 
-    def query_by_vector(self, vector: List[float], limit: int = 5) -> List[Dict[str, Any]]:
+    def query_by_vector(
+        self,
+        vector: List[float],
+        limit: int = 5,
+        streamer_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         self.ensure_schema()
         collection = self.client.collections.get(self.class_name)
+        where = None
+        if streamer_id:
+            where = Filter.by_property("streamer_id").equal(streamer_id)
         results = collection.query.near_vector(
             near_vector=vector,
             limit=limit,
             return_properties=["streamer_id", "image_uri"],
             return_metadata=MetadataQuery(distance=True),
+            where=where,
         )
         items = []
         for obj in results.objects:

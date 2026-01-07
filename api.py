@@ -17,6 +17,7 @@ from clip_retrieval.weaviate_store import WeaviateStore
 class SearchRequest(BaseModel):
     text: str
     limit: int = 5
+    streamer_id: Optional[str] = None
 
 
 class SearchResult(BaseModel):
@@ -111,7 +112,11 @@ def search(request: SearchRequest) -> List[SearchResult]:
         raise HTTPException(status_code=400, detail="text is required")
 
     query_vector = embedder.encode_text([request.text])[0]
-    results = store.query_by_vector(query_vector, limit=request.limit)
+    results = store.query_by_vector(
+        query_vector,
+        limit=request.limit,
+        streamer_id=request.streamer_id,
+    )
     return [
         SearchResult(
             streamer_id=item.get("streamer_id", ""),

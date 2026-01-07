@@ -85,7 +85,7 @@ Example:
 ```bash
 curl -X POST "http://<host>:<port>/search" \
   -H "Content-Type: application/json" \
-  -d '{"text":"a streamer with neon background","limit":3}'
+  -d '{"text":"a streamer with neon background","limit":3,"streamer_id":"streamer_001"}'
 ```
 
 ## Debug: List Streamers
