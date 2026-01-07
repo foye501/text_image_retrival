@@ -1,10 +1,13 @@
 import os
 
+from dotenv import load_dotenv
+
 from clip_retrieval.clip_wrapper import ClipEmbedder
 from clip_retrieval.weaviate_store import WeaviateStore
 
 
 def main() -> None:
+    load_dotenv()
     weaviate_url = os.environ.get("WEAVIATE_URL", "http://10.68.200.131:18080")
     weaviate_api_key = os.environ.get("WEAVIATE_API_KEY")
     weaviate_grpc_port = os.environ.get("WEAVIATE_GRPC_PORT")

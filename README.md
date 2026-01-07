@@ -13,10 +13,15 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
+cp .env.example .env
 export WEAVIATE_URL="http://10.68.200.131:18080"
 export WEAVIATE_API_KEY="your-api-key-if-needed"
 export WEAVIATE_GRPC_PORT="50051"
 export CLIP_MODEL="openai/clip-vit-large-patch14"
+export S3_BUCKET="your-bucket"
+export S3_REGION="us-west-1"
+export S3_ACCESS_KEY_ID="..."
+export S3_SECRET_ACCESS_KEY="..."
 export IMAGE_DIR="data/streamer_images"
 python main.py
 ```
@@ -24,10 +29,15 @@ python main.py
 ## Run API
 
 ```bash
+cp .env.example .env
 export WEAVIATE_URL="http://10.68.200.131:18080"
 export WEAVIATE_API_KEY="your-api-key-if-needed"
 export WEAVIATE_GRPC_PORT="50051"
 export CLIP_MODEL="openai/clip-vit-large-patch14"
+export S3_BUCKET="your-bucket"
+export S3_REGION="us-west-1"
+export S3_ACCESS_KEY_ID="..."
+export S3_SECRET_ACCESS_KEY="..."
 export IMAGE_DIR="data/streamer_images"
 uvicorn api:app --reload
 ```

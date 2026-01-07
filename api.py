@@ -4,9 +4,11 @@ from io import BytesIO
 from typing import Any, Dict, List, Optional
 from urllib.request import Request, urlopen
 
+import boto3
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from PIL import Image
+from dotenv import load_dotenv
 
 from clip_retrieval.clip_wrapper import ClipEmbedder
 from clip_retrieval.weaviate_store import WeaviateStore
@@ -25,6 +27,7 @@ class SearchResult(BaseModel):
     id: Optional[str] = None
 
 
+load_dotenv()
 app = FastAPI(title="CLIP Retrieval API")
 
 weaviate_url = os.environ.get("WEAVIATE_URL", "http://10.68.200.131:18080")
@@ -33,10 +36,22 @@ weaviate_grpc_port = os.environ.get("WEAVIATE_GRPC_PORT")
 grpc_port = int(weaviate_grpc_port) if weaviate_grpc_port else None
 clip_model = os.environ.get("CLIP_MODEL", "openai/clip-vit-large-patch14")
 image_dir = os.environ.get("IMAGE_DIR", "data/streamer_images")
+s3_bucket = os.environ.get("S3_BUCKET")
+s3_region = os.environ.get("S3_REGION")
+s3_access_key = os.environ.get("S3_ACCESS_KEY_ID")
+s3_secret_key = os.environ.get("S3_SECRET_ACCESS_KEY")
 
 store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key, grpc_port=grpc_port)
 store.ensure_schema()
 embedder = ClipEmbedder(model_name=clip_model)
+s3_client = None
+if s3_bucket and s3_access_key and s3_secret_key:
+    s3_client = boto3.client(
+        "s3",
+        region_name=s3_region,
+        aws_access_key_id=s3_access_key,
+        aws_secret_access_key=s3_secret_key,
+    )
 
 
 @app.on_event("shutdown")
@@ -53,26 +68,41 @@ def health() -> dict:
 @app.post("/streamers")
 async def add_streamer(
     streamer_id: str = Form(...),
-    image: UploadFile = File(...),
+    image: Optional[UploadFile] = File(None),
+    s3_key: Optional[str] = Form(None),
 ) -> dict:
     if not streamer_id.strip():
         raise HTTPException(status_code=400, detail="streamer_id is required")
 
-    os.makedirs(image_dir, exist_ok=True)
-    filename = f"{streamer_id}_{image.filename}"
-    image_path = os.path.join(image_dir, filename)
+    if image is None and not s3_key:
+        raise HTTPException(status_code=400, detail="image or s3_key is required")
 
-    contents = await image.read()
+    contents = None
+    image_uri = None
+    if s3_key:
+        if not s3_client or not s3_bucket:
+            raise HTTPException(status_code=400, detail="S3 is not configured")
+        try:
+            response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key)
+            contents = response["Body"].read()
+            image_uri = f"s3://{s3_bucket}/{s3_key}"
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"S3 download failed: {exc}") from exc
+    else:
+        os.makedirs(image_dir, exist_ok=True)
+        filename = f"{streamer_id}_{image.filename}"
+        image_path = os.path.join(image_dir, filename)
+        contents = await image.read()
+        image_uri = image_path
     try:
         pil_image = Image.open(BytesIO(contents)).convert("RGB")
     except OSError as exc:
         raise HTTPException(status_code=400, detail="invalid image file") from exc
 
-    pil_image.save(image_path)
     vector = embedder.encode_image([pil_image])[0]
-    object_id = store.add_streamer(streamer_id, image_path, vector)
+    object_id = store.add_streamer(streamer_id, image_uri, vector)
 
-    return {"id": object_id, "streamer_id": streamer_id, "image_uri": image_path}
+    return {"id": object_id, "streamer_id": streamer_id, "image_uri": image_uri}
 
 
 @app.post("/search", response_model=List[SearchResult])

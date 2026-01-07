@@ -6,3 +6,5 @@ weaviate-client>=4.0.0
 fastapi
 uvicorn
 python-multipart
+boto3
+python-dotenv
