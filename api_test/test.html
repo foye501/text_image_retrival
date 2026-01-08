@@ -1,0 +1,16 @@
+<form id="f">
+  <input name="streamer_id" value="4367265017485923" />
+  <input name="s3_key" value="user/avatar/image/upload_1767151962849.png" />
+  <button>Send</button>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const res = await fetch("http://159.135.196.86:12280/streamers", {
+    method: "POST",
+    body: form
+  });
+  console.log(await res.json());
+});
+</script>

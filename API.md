@@ -3,17 +3,7 @@
 Base URL:
 
 ```
-http://<host>:<port>
-```
-
-## Health
-
-`GET /health`
-
-Response:
-
-```json
-{"status":"ok"}
+http://159.135.196.86:12280/
 ```
 
 ## Add Streamer Image
@@ -81,7 +71,7 @@ Content-Type: `application/json`
 Body:
 
 ```json
-{"text":"a streamer with neon background","limit":3}
+{"text":"a streamer with neon background","limit":3,"streamer_id":"streamer_001"}
 ```
 
 Response:
@@ -105,24 +95,3 @@ curl -X POST "http://<host>:<port>/search" \
   -H "Content-Type: application/json" \
   -d '{"text":"a streamer with neon background","limit":3,"streamer_id":"streamer_001"}'
 ```
-
-## Debug: List Streamers
-
-`GET /debug/streamers`
-
-Query params:
-
-- `streamer_id` (optional)
-- `limit` (default: `1`)
-- `include_vector` (default: `true`)
-
-Example:
-
-```bash
-curl "http://<host>:<port>/debug/streamers?limit=1&include_vector=true"
-```
-
-## OpenAPI
-
-- `GET /docs` (Swagger UI)
-- `GET /openapi.json`

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from io import BytesIO
 from typing import Any, Dict, List, Optional
@@ -29,6 +30,8 @@ class SearchResult(BaseModel):
 
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("clip_api")
 app = FastAPI(title="CLIP Retrieval API")
 
 weaviate_url = os.environ.get("WEAVIATE_URL", "http://10.68.200.131:18080")
@@ -88,6 +91,7 @@ async def add_streamer(
             contents = response["Body"].read()
             image_uri = f"s3://{s3_bucket}/{s3_key}"
         except Exception as exc:
+            logger.exception("S3 download failed")
             raise HTTPException(status_code=502, detail=f"S3 download failed: {exc}") from exc
     else:
         os.makedirs(image_dir, exist_ok=True)
