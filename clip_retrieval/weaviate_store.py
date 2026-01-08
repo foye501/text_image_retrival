@@ -119,5 +119,9 @@ class WeaviateStore:
         else:
             where = Filter.all_of(filters)
 
-        result = collection.data.delete_many(where=where)
-        return {"matched": result.matches, "deleted": result.matches}
+        result = collection.query.fetch_objects(filters=where, limit=10000)
+        deleted = 0
+        for obj in result.objects:
+            collection.data.delete_by_id(obj.uuid)
+            deleted += 1
+        return {"matched": len(result.objects), "deleted": deleted}
