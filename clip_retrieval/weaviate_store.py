@@ -120,4 +120,4 @@ class WeaviateStore:
             where = Filter.all_of(filters)
 
         result = collection.data.delete_many(where=where)
-        return {"matched": result.matches, "deleted": result.deletions}
+        return {"matched": result.matches, "deleted": result.matches}
