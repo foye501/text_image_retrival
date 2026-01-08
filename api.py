@@ -3,6 +3,7 @@ import logging
 import os
 from io import BytesIO
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 import boto3
@@ -74,12 +75,16 @@ async def add_streamer(
     streamer_id: str = Form(...),
     image: Optional[UploadFile] = File(None),
     s3_key: Optional[str] = Form(None),
+    presigned_url: Optional[str] = Form(None),
 ) -> dict:
     if not streamer_id.strip():
         raise HTTPException(status_code=400, detail="streamer_id is required")
 
-    if image is None and not s3_key:
-        raise HTTPException(status_code=400, detail="image or s3_key is required")
+    if image is None and not s3_key and not presigned_url:
+        raise HTTPException(
+            status_code=400,
+            detail="image, s3_key, or presigned_url is required",
+        )
 
     contents = None
     image_uri = None
@@ -93,12 +98,24 @@ async def add_streamer(
         except Exception as exc:
             logger.exception("S3 download failed")
             raise HTTPException(status_code=502, detail=f"S3 download failed: {exc}") from exc
-    else:
+    elif image is not None:
         os.makedirs(image_dir, exist_ok=True)
         filename = f"{streamer_id}_{image.filename}"
         image_path = os.path.join(image_dir, filename)
         contents = await image.read()
         image_uri = image_path
+    else:
+        try:
+            with urlopen(presigned_url, timeout=15) as response:
+                contents = response.read()
+            parsed = urlparse(presigned_url)
+            image_uri = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+        except Exception as exc:
+            logger.exception("Presigned URL download failed")
+            raise HTTPException(
+                status_code=502,
+                detail=f"Presigned URL download failed: {exc}",
+            ) from exc
     try:
         pil_image = Image.open(BytesIO(contents)).convert("RGB")
     except OSError as exc:
