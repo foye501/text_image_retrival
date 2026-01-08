@@ -44,6 +44,27 @@ curl -X POST "http://<host>:<port>/streamers" \
   -F "s3_key=path/to/streamer_001.jpg"
 ```
 
+## Add Streamer Image
+
+`POST /streamers`
+
+Content-Type: `multipart/form-data`
+
+Fields:
+
+- `streamer_id` (string)
+- `image` (file, optional if `s3_key` or `presigned_url` provided)
+- `s3_key` (string, optional if `image` or `presigned_url` provided)
+- `presigned_url` (string, optional if `image` or `s3_key` provided)
+
+Example (presigned URL):
+
+```bash
+curl -X POST "http://<host>:<port>/streamers" \
+  -F "streamer_id=streamer_001" \
+  -F "presigned_url=https://dev-soullove-resouce-img.s3.amazonaws.com/..."
+```
+
 ## Delete Streamer Data
 
 `POST /streamers/delete`

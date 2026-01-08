@@ -45,6 +45,7 @@ s3_bucket = os.environ.get("S3_BUCKET")
 s3_region = os.environ.get("S3_REGION")
 s3_access_key = os.environ.get("S3_ACCESS_KEY_ID")
 s3_secret_key = os.environ.get("S3_SECRET_ACCESS_KEY")
+s3_presign_expires = int(os.environ.get("S3_PRESIGN_EXPIRES", "3600"))
 
 store = WeaviateStore(url=weaviate_url, api_key=weaviate_api_key, grpc_port=grpc_port)
 store.ensure_schema()
@@ -92,8 +93,13 @@ async def add_streamer(
         if not s3_client or not s3_bucket:
             raise HTTPException(status_code=400, detail="S3 is not configured")
         try:
-            response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key)
-            contents = response["Body"].read()
+            presigned = s3_client.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={"Bucket": s3_bucket, "Key": s3_key},
+                ExpiresIn=s3_presign_expires,
+            )
+            with urlopen(presigned, timeout=15) as response:
+                contents = response.read()
             image_uri = f"s3://{s3_bucket}/{s3_key}"
         except Exception as exc:
             logger.exception("S3 download failed")
