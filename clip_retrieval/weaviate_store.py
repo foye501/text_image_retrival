@@ -119,9 +119,15 @@ class WeaviateStore:
         else:
             where = Filter.all_of(filters)
 
-        result = collection.query.fetch_objects(filters=where, limit=10000)
+        result = collection.query.fetch_objects(limit=10000)
+        matched = 0
         deleted = 0
         for obj in result.objects:
+            if streamer_id and obj.properties.get("streamer_id") != streamer_id:
+                continue
+            if image_uri and obj.properties.get("image_uri") != image_uri:
+                continue
+            matched += 1
             collection.data.delete_by_id(obj.uuid)
             deleted += 1
-        return {"matched": len(result.objects), "deleted": deleted}
+        return {"matched": matched, "deleted": deleted}
