@@ -54,6 +54,24 @@ curl -X POST "http://<host>:<port>/streamers" \
   -F "s3_key=path/to/streamer_001.jpg"
 ```
 
+## Delete Streamer Data
+
+`POST /streamers/delete`
+
+Body (at least one required):
+
+```json
+{"streamer_id":"streamer_001"}
+```
+
+Example:
+
+```bash
+curl -X POST "http://<host>:<port>/streamers/delete" \
+  -H "Content-Type: application/json" \
+  -d '{"s3_key":"path/to/streamer_001.jpg"}'
+```
+
 ## Search by Text
 
 `POST /search`

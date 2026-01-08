@@ -98,3 +98,26 @@ class WeaviateStore:
                 }
             )
         return items
+
+    def delete_streamers(
+        self,
+        streamer_id: Optional[str] = None,
+        image_uri: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        self.ensure_schema()
+        collection = self.client.collections.get(self.class_name)
+        filters = []
+        if streamer_id:
+            filters.append(Filter.by_property("streamer_id").equal(streamer_id))
+        if image_uri:
+            filters.append(Filter.by_property("image_uri").equal(image_uri))
+        if not filters:
+            raise ValueError("streamer_id or image_uri is required")
+
+        if len(filters) == 1:
+            where = filters[0]
+        else:
+            where = Filter.all_of(filters)
+
+        result = collection.data.delete_many(where=where)
+        return {"matched": result.matches, "deleted": result.deletions}

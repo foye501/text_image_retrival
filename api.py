@@ -106,6 +106,35 @@ async def add_streamer(
     return {"id": object_id, "streamer_id": streamer_id, "image_uri": image_uri}
 
 
+class DeleteRequest(BaseModel):
+    streamer_id: Optional[str] = None
+    s3_key: Optional[str] = None
+    image_uri: Optional[str] = None
+
+
+@app.post("/streamers/delete")
+def delete_streamer_post(request: DeleteRequest) -> Dict[str, Any]:
+    if not request.streamer_id and not request.s3_key and not request.image_uri:
+        raise HTTPException(
+            status_code=400,
+            detail="streamer_id, s3_key, or image_uri is required",
+        )
+
+    resolved_uri = request.image_uri
+    if request.s3_key:
+        if not s3_bucket:
+            raise HTTPException(status_code=400, detail="S3 is not configured")
+        resolved_uri = f"s3://{s3_bucket}/{request.s3_key}"
+
+    try:
+        return store.delete_streamers(
+            streamer_id=request.streamer_id,
+            image_uri=resolved_uri,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/search", response_model=List[SearchResult])
 def search(request: SearchRequest) -> List[SearchResult]:
     if not request.text.strip():
