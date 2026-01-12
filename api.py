@@ -100,7 +100,7 @@ async def add_streamer(
             )
             with urlopen(presigned, timeout=15) as response:
                 contents = response.read()
-            image_uri = f"s3://{s3_bucket}/{s3_key}"
+            image_uri = s3_key
         except Exception as exc:
             logger.exception("S3 download failed")
             raise HTTPException(status_code=502, detail=f"S3 download failed: {exc}") from exc
@@ -115,7 +115,7 @@ async def add_streamer(
             with urlopen(presigned_url, timeout=15) as response:
                 contents = response.read()
             parsed = urlparse(presigned_url)
-            image_uri = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+            image_uri = parsed.path.lstrip("/")
         except Exception as exc:
             logger.exception("Presigned URL download failed")
             raise HTTPException(
@@ -149,9 +149,7 @@ def delete_streamer_post(request: DeleteRequest) -> Dict[str, Any]:
 
     resolved_uri = request.image_uri
     if request.s3_key:
-        if not s3_bucket:
-            raise HTTPException(status_code=400, detail="S3 is not configured")
-        resolved_uri = f"s3://{s3_bucket}/{request.s3_key}"
+        resolved_uri = request.s3_key
 
     try:
         return store.delete_streamers(
